@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>메모 관리</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>📝 메모 작성</h1>
+
+      <form id="memoForm">
+        <label>반려동물 선택</label>
+        <select name="pet_id" id="petSelect" required>
+          <option value="">반려동물을 선택하세요</option>
+        </select>
+
+        <label>메모 내용</label>
+        <textarea name="content" rows="5" required></textarea>
+
+        <button type="submit">저장</button>
+      </form>
+
+      <p
+        id="msg"
+        style="
+          text-align: center;
+          margin-top: 16px;
+          color: #4a6fa5;
+          font-weight: bold;
+        "
+      ></p>
+
+      <a href="/" class="back-link">메인으로 돌아가기</a>
+    </div>
+
+    <script>
+      // 반려동물 목록 불러오기
+      async function loadPets() {
+        const res = await fetch("/pets");
+        const pets = await res.json();
+
+        const select = document.getElementById("petSelect");
+        pets.forEach((pet) => {
+          const option = document.createElement("option");
+          option.value = pet.id; // 실제 전송되는 값
+          option.textContent = pet.name; // 화면에 보이는 값
+          select.appendChild(option);
+        });
+      }
+
+      // 페이지가 열리면 목록 불러오기
+      loadPets();
+
+      // 메모 등록
+      document
+        .getElementById("memoForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const form = e.target;
+
+          await fetch("/memos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              pet_id: form.pet_id.value,
+              content: form.content.value,
+            }),
+          });
+
+          document.getElementById("msg").textContent = "✅ 저장 완료!";
+          form.reset();
+        });
+    </script>
+  </body>
+</html>

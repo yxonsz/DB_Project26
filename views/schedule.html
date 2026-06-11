@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>일정 관리</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>📅 일정 등록</h1>
+
+      <form id="scheduleForm">
+        <label>반려동물 선택</label>
+        <select name="pet_id" id="petSelect" required>
+          <option value="">반려동물을 선택하세요</option>
+        </select>
+
+        <label>일정명</label>
+        <input type="text" name="title" required />
+
+        <label>날짜</label>
+        <input type="date" name="date" required />
+
+        <button type="submit">등록</button>
+      </form>
+
+      <p
+        id="msg"
+        style="
+          text-align: center;
+          margin-top: 16px;
+          color: #4a6fa5;
+          font-weight: bold;
+        "
+      ></p>
+
+      <a href="/" class="back-link">메인으로 돌아가기</a>
+    </div>
+
+    <script>
+      // 반려동물 목록 불러오기
+      async function loadPets() {
+        const res = await fetch("/pets");
+        const pets = await res.json();
+
+        const select = document.getElementById("petSelect");
+
+        pets.forEach((pet) => {
+          const option = document.createElement("option");
+          option.value = pet.id; // 실제 전송되는 값
+          option.textContent = pet.name; // 화면에 표시되는 이름
+          select.appendChild(option);
+        });
+      }
+
+      // 페이지 로드 시 반려동물 목록 불러오기
+      loadPets();
+
+      // 일정 등록
+      document
+        .getElementById("scheduleForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const form = e.target;
+
+          await fetch("/schedules", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              pet_id: form.pet_id.value,
+              title: form.title.value,
+              date: form.date.value,
+            }),
+          });
+
+          document.getElementById("msg").textContent = "✅ 등록 완료!";
+          form.reset();
+        });
+    </script>
+  </body>
+</html>

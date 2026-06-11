@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>반려동물 관리</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>🐱 반려동물 등록</h1>
+
+      <form id="petForm" enctype="multipart/form-data">
+        <label>이름</label>
+        <input type="text" name="name" required />
+
+        <label>종</label>
+        <input type="text" name="species" required />
+
+        <label>나이</label>
+        <input type="text" name="age" required />
+
+        <label>성별</label>
+        <select name="gender" required>
+          <option value="수컷">수컷</option>
+          <option value="암컷">암컷</option>
+          <option value="모름">모름</option>
+        </select>
+
+        <label>사진 (선택)</label>
+        <input type="file" name="photo" accept="image/*" />
+
+        <button type="submit">등록</button>
+      </form>
+
+      <p
+        id="msg"
+        style="
+          text-align: center;
+          margin-top: 16px;
+          color: #4a6fa5;
+          font-weight: bold;
+        "
+      ></p>
+
+      <a href="/" class="back-link">메인으로 돌아가기</a>
+    </div>
+
+    <script>
+      document
+        .getElementById("petForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const form = e.target;
+          const formData = new FormData(form);
+
+          try {
+            const res = await fetch("/pets", {
+              method: "POST",
+              body: formData,
+            });
+
+            const text = await res.text();
+
+            if (res.ok) {
+              document.getElementById("msg").textContent =
+                "✅ 반려동물이 성공적으로 등록되었습니다!";
+              form.reset();
+            } else {
+              document.getElementById("msg").textContent = "❌ " + text;
+            }
+          } catch (err) {
+            document.getElementById("msg").textContent =
+              "❌ 서버와 통신 중 오류가 발생했습니다.";
+            console.error(err);
+          }
+        });
+    </script>
+  </body>
+</html>
