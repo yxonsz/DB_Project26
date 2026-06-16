@@ -16,15 +16,38 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+function parseAgeToMonths(age) {
+  const text = String(age).trim().toLowerCase();
+
+  const yearMatch = text.match(/(\d+)\s*(살|세|년|year|years|y)/);
+  const monthMatch = text.match(/(\d+)\s*(개월|달|month|months|m)/);
+
+  let months = 0;
+
+  if (yearMatch) {
+    months += Number(yearMatch[1]) * 12;
+  }
+
+  if (monthMatch) {
+    months += Number(monthMatch[1]);
+  }
+
+  if (months === 0) {
+    return NaN;
+  }
+
+  return months;
+}
+
 // 반려동물 등록
 router.post("/", upload.single("photo"), (req, res) => {
   let { name, species, age, gender } = req.body;
   const photo = req.file ? "/uploads/" + req.file.filename : null;
 
-  // "1살", "2세", "3 years" 등에서 숫자만 추출
-  age = parseInt(String(age).replace(/[^0-9]/g, ""), 10);
+  // "1개월", "1살", "2세", "3 years", "1년 6개월" 등을 개월 수로 변환
+  age = parseAgeToMonths(age);
 
-  // 숫자가 없으면 오류 처리
+  // 변환 실패하면 오류 처리
   if (isNaN(age)) {
     return res.status(400).send("나이를 올바르게 입력해주세요.");
   }
