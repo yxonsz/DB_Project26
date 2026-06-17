@@ -11,57 +11,109 @@
 
       <form id="memoForm">
         <label>반려동물 선택</label>
+
         <select name="pet_id" id="petSelect" required>
           <option value="">반려동물을 선택하세요</option>
         </select>
 
         <label>메모 내용</label>
-        <textarea name="content" rows="5" required></textarea>
+
+        <textarea
+          name="content"
+          rows="5"
+          placeholder="메모를 입력하세요"
+          required
+        ></textarea>
 
         <button type="submit">저장</button>
       </form>
 
-      <p
-        id="msg"
-        style="
-          text-align: center;
-          margin-top: 16px;
-          color: #4a6fa5;
-          font-weight: bold;
-        "
-      ></p>
+      <p id="msg"></p>
+
+      <h2 class="memo-title">📋 메모 목록</h2>
+
+      <div id="memoList"></div>
 
       <a href="/" class="back-link">메인으로 돌아가기</a>
     </div>
 
     <script>
-      // 반려동물 목록 불러오기
+      // 반려동물 목록
       async function loadPets() {
         const res = await fetch("/pets");
         const pets = await res.json();
 
         const select = document.getElementById("petSelect");
+
         pets.forEach((pet) => {
           const option = document.createElement("option");
-          option.value = pet.id; // 실제 전송되는 값
-          option.textContent = pet.name; // 화면에 보이는 값
+          option.value = pet.id;
+          option.textContent = pet.name;
           select.appendChild(option);
         });
       }
 
-      // 페이지가 열리면 목록 불러오기
-      loadPets();
+      // 메모 목록
+      async function loadMemos() {
+        const res = await fetch("/memos");
+        const memos = await res.json();
+
+        const memoList = document.getElementById("memoList");
+
+        memoList.innerHTML = "";
+
+        if (memos.length === 0) {
+          memoList.innerHTML =
+            "<p style='text-align:center;color:#999;'>등록된 메모가 없습니다.</p>";
+          return;
+        }
+
+        memos.forEach((memo) => {
+          memoList.innerHTML += `
+            <div class="memo-item">
+
+              <div class="memo-pet">
+                🐾 ${memo.pet_name}
+              </div>
+
+              <div class="memo-content">
+                ${memo.content}
+              </div>
+
+              <div class="memo-actions">
+
+                <button
+                  class="edit-btn"
+                  onclick="editMemo(${memo.id}, '${memo.content.replace(/'/g, "\\'")}')">
+                  ✏️ 수정
+                </button>
+
+                <button
+                  class="delete-btn"
+                  onclick="deleteMemo(${memo.id})">
+                  🗑 삭제
+                </button>
+
+              </div>
+
+            </div>
+          `;
+        });
+      }
 
       // 메모 등록
       document
         .getElementById("memoForm")
         .addEventListener("submit", async (e) => {
           e.preventDefault();
+
           const form = e.target;
 
           await fetch("/memos", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+            },
             body: JSON.stringify({
               pet_id: form.pet_id.value,
               content: form.content.value,
@@ -69,8 +121,44 @@
           });
 
           document.getElementById("msg").textContent = "✅ 저장 완료!";
+
           form.reset();
+
+          loadMemos();
         });
+
+      // 메모 수정
+      async function editMemo(id, oldContent) {
+        const newContent = prompt("수정할 내용을 입력하세요", oldContent);
+
+        if (!newContent) return;
+
+        await fetch(`/memos/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            content: newContent,
+          }),
+        });
+
+        loadMemos();
+      }
+
+      // 메모 삭제
+      async function deleteMemo(id) {
+        if (!confirm("정말 삭제할까요?")) return;
+
+        await fetch(`/memos/${id}`, {
+          method: "DELETE",
+        });
+
+        loadMemos();
+      }
+
+      loadPets();
+      loadMemos();
     </script>
   </body>
 </html>

@@ -6,7 +6,7 @@
 
 body {
   font-family: "Pretendard", sans-serif;
-  background-color: #f4f7fb;
+  background: linear-gradient(135deg, #f4f7fb, #eef4ff);
   color: #333;
   display: flex;
   justify-content: center;
@@ -15,11 +15,11 @@ body {
 
 .container {
   width: 100%;
-  max-width: 600px;
-  background: white;
+  max-width: 700px;
+  background: #fff;
   padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
 h1 {
@@ -34,18 +34,25 @@ form {
 }
 
 label {
-  margin-bottom: 5px;
-  font-weight: bold;
+  margin-bottom: 6px;
+  font-weight: 600;
 }
 
 input,
 select,
 textarea {
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px solid #d9e2f0;
+  border-radius: 10px;
   font-size: 14px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #4a6fa5;
 }
 
 textarea {
@@ -53,26 +60,21 @@ textarea {
 }
 
 button {
-  background-color: #4a6fa5;
-  color: white;
   border: none;
-  padding: 12px;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 15px;
   transition: 0.2s;
 }
 
-button:hover {
-  background-color: #38588a;
+form button {
+  background: #4a6fa5;
+  color: white;
+  padding: 12px;
+  font-size: 15px;
 }
 
-ul {
-  list-style: none;
-}
-
-li {
-  margin: 15px 0;
+form button:hover {
+  background: #38588a;
 }
 
 a {
@@ -87,6 +89,128 @@ a:hover {
 
 .back-link {
   display: block;
-  margin-top: 20px;
   text-align: center;
+  margin-top: 25px;
+  font-size: 18px;
+}
+
+#msg {
+  text-align: center;
+  margin-top: 15px;
+  color: #2ecc71;
+  font-weight: bold;
+}
+
+/* =========================
+   메모 페이지
+========================= */
+
+.memo-title {
+  margin: 30px 0 15px;
+  color: #333;
+}
+
+.memo-item {
+  background: #fafcff;
+  border: 1px solid #e5eaf3;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.memo-content {
+  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: 14px;
+  word-break: break-word;
+}
+
+.memo-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.memo-actions button {
+  padding: 8px 16px;
+}
+
+.edit-btn {
+  background: #4a6fa5;
+  color: white;
+}
+
+.edit-btn:hover {
+  background: #38588a;
+}
+
+.delete-btn {
+  background: #e74c3c;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #c0392b;
+}
+
+/* =========================
+   메인 화면
+========================= */
+
+.home-container {
+  max-width: 500px;
+}
+
+.main-menu {
+  list-style: none;
+}
+
+.main-menu li {
+  margin-bottom: 15px;
+}
+
+.main-menu a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 18px;
+  border-radius: 14px;
+
+  background: #f8faff;
+  border: 1px solid #e5eaf3;
+
+  font-size: 17px;
+  font-weight: 600;
+
+  text-decoration: none;
+
+  transition: all 0.2s ease;
+}
+
+.main-menu a:hover {
+  background: #4a6fa5;
+  color: white;
+  text-decoration: none;
+
+  transform: translateY(-2px);
+
+  box-shadow: 0 6px 15px rgba(74, 111, 165, 0.25);
+}
+
+.main-menu a span:first-child {
+  font-size: 22px;
+}
+
+.memo-pet {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 5px 12px;
+
+  background: #eaf2ff;
+  color: #4a6fa5;
+
+  border-radius: 999px;
+
+  font-size: 13px;
+  font-weight: 600;
 }
