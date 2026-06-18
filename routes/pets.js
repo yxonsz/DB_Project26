@@ -39,13 +39,12 @@ function parseAgeToMonths(age) {
   return months;
 }
 
-// 반려동물 등록
 router.post("/", upload.single("photo"), (req, res) => {
   let { name, species, age, gender } = req.body;
   const photo = req.file ? "/uploads/" + req.file.filename : null;
 
-  // "1개월", "1살", "2세", "3 years", "1년 6개월" 등을 개월 수로 변환
-  age = parseAgeToMonths(age);
+  // 정수 변환
+  age = parseInt(age);
 
   // 변환 실패하면 오류 처리
   if (isNaN(age)) {
@@ -63,16 +62,3 @@ router.post("/", upload.single("photo"), (req, res) => {
     res.send("반려동물 등록 완료");
   });
 });
-
-// 반려동물 목록 조회
-router.get("/", (req, res) => {
-  db.query("SELECT * FROM pet", (err, result) => {
-    if (err) {
-      console.log(err);
-      return res.status(500).send("오류");
-    }
-    res.json(result);
-  });
-});
-
-module.exports = router;
