@@ -5,40 +5,45 @@
     <title>일정 관리</title>
     <link rel="stylesheet" href="/css/style.css" />
   </head>
+
   <body>
     <div class="container">
       <h1>📅 일정 등록</h1>
 
       <form id="scheduleForm">
         <label>반려동물 선택</label>
+
         <select name="pet_id" id="petSelect" required>
           <option value="">반려동물을 선택하세요</option>
         </select>
 
         <label>일정명</label>
-        <input type="text" name="title" required />
+
+        <input
+          type="text"
+          name="title"
+          placeholder="일정을 입력하세요"
+          required
+        />
 
         <label>날짜</label>
+
         <input type="date" name="date" required />
 
-        <button type="submit">등록</button>
+        <button type="submit">저장</button>
       </form>
 
-      <p
-        id="msg"
-        style="
-          text-align: center;
-          margin-top: 16px;
-          color: #4a6fa5;
-          font-weight: bold;
-        "
-      ></p>
+      <p id="msg"></p>
+
+      <h2 class="memo-title">📋 일정 목록</h2>
+
+      <div id="scheduleList"></div>
 
       <a href="/" class="back-link">메인으로 돌아가기</a>
     </div>
 
     <script>
-      // 반려동물 목록 불러오기
+      // 반려동물 목록
       async function loadPets() {
         const res = await fetch("/pets");
         const pets = await res.json();
@@ -47,16 +52,71 @@
 
         pets.forEach((pet) => {
           const option = document.createElement("option");
-          option.value = pet.id; // 실제 전송되는 값
-          option.textContent = pet.name; // 화면에 표시되는 이름
+
+          option.value = pet.id;
+          option.textContent = pet.name;
+
           select.appendChild(option);
         });
       }
 
-      // 페이지 로드 시 반려동물 목록 불러오기
-      loadPets();
+      // 일정 목록
+      async function loadSchedules() {
+        const res = await fetch("/schedules");
+        const schedules = await res.json();
 
-      // 일정 등록
+        const scheduleList = document.getElementById("scheduleList");
+
+        scheduleList.innerHTML = "";
+
+        if (schedules.length === 0) {
+          scheduleList.innerHTML =
+            "<p style='text-align:center;color:#999;'>등록된 일정이 없습니다.</p>";
+
+          return;
+        }
+
+        schedules.forEach((schedule) => {
+          scheduleList.innerHTML += `
+
+          <div class="memo-item">
+
+            <div class="memo-pet">
+              🐾 ${schedule.pet_name}
+            </div>
+
+            <div class="memo-content">
+              <b>${schedule.title}</b><br>
+              📅 ${schedule.date.substring(0, 10)}
+            </div>
+
+            <div class="memo-actions">
+
+              <button
+                class="edit-btn"
+                onclick="editSchedule(${schedule.id}, '${schedule.title.replace(/'/g, "\\'")}', '${schedule.date.substring(0, 10)}')">
+
+                ✏️ 수정
+
+              </button>
+
+              <button
+                class="delete-btn"
+                onclick="deleteSchedule(${schedule.id})">
+
+                🗑 삭제
+
+              </button>
+
+            </div>
+
+          </div>
+
+        `;
+        });
+      }
+
+      // 등록
       document
         .getElementById("scheduleForm")
         .addEventListener("submit", async (e) => {
@@ -66,9 +126,11 @@
 
           await fetch("/schedules", {
             method: "POST",
+
             headers: {
               "Content-Type": "application/json",
             },
+
             body: JSON.stringify({
               pet_id: form.pet_id.value,
               title: form.title.value,
@@ -76,9 +138,52 @@
             }),
           });
 
-          document.getElementById("msg").textContent = "✅ 등록 완료!";
+          document.getElementById("msg").textContent = "✅ 저장 완료!";
+
           form.reset();
+
+          loadSchedules();
         });
+
+      // 수정
+      async function editSchedule(id, oldTitle, oldDate) {
+        const newTitle = prompt("일정명을 입력하세요.", oldTitle);
+
+        if (!newTitle) return;
+
+        const newDate = prompt("날짜를 입력하세요.", oldDate);
+
+        if (!newDate) return;
+
+        await fetch(`/schedules/${id}`, {
+          method: "PUT",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            title: newTitle,
+            date: newDate,
+          }),
+        });
+
+        loadSchedules();
+      }
+
+      // 삭제
+      async function deleteSchedule(id) {
+        if (!confirm("정말 삭제할까요?")) return;
+
+        await fetch(`/schedules/${id}`, {
+          method: "DELETE",
+        });
+
+        loadSchedules();
+      }
+
+      loadPets();
+      loadSchedules();
     </script>
   </body>
 </html>
