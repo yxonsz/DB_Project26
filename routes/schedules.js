@@ -25,7 +25,7 @@ router.get("/", (req, res) => {
       schedule.id,
       schedule.pet_id,
       schedule.title,
-      schedule.date,
+      DATE_FORMAT(schedule.date, '%Y-%m-%d') AS date,
       pet.name AS pet_name
     FROM schedule
     JOIN pet
@@ -33,16 +33,11 @@ router.get("/", (req, res) => {
     ORDER BY schedule.id DESC
   `;
 
-  console.log(sql);
-
   db.query(sql, (err, result) => {
     if (err) {
-      console.error("🔥 SQL ERROR:");
       console.error(err);
       return res.status(500).json(err);
     }
-
-    console.log(result);
     res.json(result);
   });
 });

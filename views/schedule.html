@@ -12,13 +12,11 @@
 
       <form id="scheduleForm">
         <label>반려동물 선택</label>
-
         <select name="pet_id" id="petSelect" required>
           <option value="">반려동물을 선택하세요</option>
         </select>
 
         <label>일정명</label>
-
         <input
           type="text"
           name="title"
@@ -27,7 +25,6 @@
         />
 
         <label>날짜</label>
-
         <input type="date" name="date" required />
 
         <button type="submit">저장</button>
@@ -36,26 +33,105 @@
       <p id="msg"></p>
 
       <h2 class="memo-title">📋 일정 목록</h2>
-
       <div id="scheduleList"></div>
 
       <a href="/" class="back-link">메인으로 돌아가기</a>
     </div>
 
+    <!-- 수정 모달 -->
+    <div
+      id="editModal"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 999;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <div
+        style="
+          background: #fff;
+          border-radius: 12px;
+          padding: 32px;
+          width: 320px;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        "
+      >
+        <h3 style="margin-bottom: 20px">✏️ 일정 수정</h3>
+        <label>일정명</label>
+        <input
+          type="text"
+          id="editTitle"
+          style="
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+          "
+        />
+        <label>날짜</label>
+        <input
+          type="date"
+          id="editDate"
+          style="
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0 24px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+          "
+        />
+        <div style="display: flex; gap: 10px; justify-content: flex-end">
+          <button
+            onclick="closeModal()"
+            style="
+              padding: 10px 20px;
+              border: 1px solid #ddd;
+              border-radius: 8px;
+              background: #fff;
+              cursor: pointer;
+            "
+          >
+            취소
+          </button>
+          <button
+            onclick="submitEdit()"
+            style="
+              padding: 10px 20px;
+              border: none;
+              border-radius: 8px;
+              background: #4a6fa5;
+              color: #fff;
+              cursor: pointer;
+            "
+          >
+            저장
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script>
+      let currentEditId = null;
+
       // 반려동물 목록
       async function loadPets() {
         const res = await fetch("/pets");
         const pets = await res.json();
-
         const select = document.getElementById("petSelect");
-
         pets.forEach((pet) => {
           const option = document.createElement("option");
-
           option.value = pet.id;
           option.textContent = pet.name;
-
           select.appendChild(option);
         });
       }
@@ -64,55 +140,29 @@
       async function loadSchedules() {
         const res = await fetch("/schedules");
         const schedules = await res.json();
-
         const scheduleList = document.getElementById("scheduleList");
-
         scheduleList.innerHTML = "";
 
         if (schedules.length === 0) {
           scheduleList.innerHTML =
             "<p style='text-align:center;color:#999;'>등록된 일정이 없습니다.</p>";
-
           return;
         }
 
         schedules.forEach((schedule) => {
           scheduleList.innerHTML += `
-
-          <div class="memo-item">
-
-            <div class="memo-pet">
-              🐾 ${schedule.pet_name}
+            <div class="memo-item">
+              <div class="memo-pet">🐾 ${schedule.pet_name}</div>
+              <div class="memo-content">
+                <b>${schedule.title}</b><br>
+                📅 ${schedule.date}
+              </div>
+              <div class="memo-actions">
+                <button class="edit-btn" onclick="editSchedule(${schedule.id}, '${schedule.title.replace(/'/g, "\\'")}', '${schedule.date}')">✏️ 수정</button>
+                <button class="delete-btn" onclick="deleteSchedule(${schedule.id})">🗑 삭제</button>
+              </div>
             </div>
-
-            <div class="memo-content">
-              <b>${schedule.title}</b><br>
-              📅 ${schedule.date.substring(0, 10)}
-            </div>
-
-            <div class="memo-actions">
-
-              <button
-                class="edit-btn"
-                onclick="editSchedule(${schedule.id}, '${schedule.title.replace(/'/g, "\\'")}', '${schedule.date.substring(0, 10)}')">
-
-                ✏️ 수정
-
-              </button>
-
-              <button
-                class="delete-btn"
-                onclick="deleteSchedule(${schedule.id})">
-
-                🗑 삭제
-
-              </button>
-
-            </div>
-
-          </div>
-
-        `;
+          `;
         });
       }
 
@@ -121,64 +171,56 @@
         .getElementById("scheduleForm")
         .addEventListener("submit", async (e) => {
           e.preventDefault();
-
           const form = e.target;
-
           await fetch("/schedules", {
             method: "POST",
-
-            headers: {
-              "Content-Type": "application/json",
-            },
-
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               pet_id: form.pet_id.value,
               title: form.title.value,
               date: form.date.value,
             }),
           });
-
           document.getElementById("msg").textContent = "✅ 저장 완료!";
-
           form.reset();
-
           loadSchedules();
         });
 
-      // 수정
-      async function editSchedule(id, oldTitle, oldDate) {
-        const newTitle = prompt("일정명을 입력하세요.", oldTitle);
+      // 수정 모달 열기
+      function editSchedule(id, oldTitle, oldDate) {
+        currentEditId = id;
+        document.getElementById("editTitle").value = oldTitle;
+        document.getElementById("editDate").value = oldDate;
+        document.getElementById("editModal").style.display = "flex";
+      }
 
-        if (!newTitle) return;
+      // 모달 닫기
+      function closeModal() {
+        document.getElementById("editModal").style.display = "none";
+        currentEditId = null;
+      }
 
-        const newDate = prompt("날짜를 입력하세요.", oldDate);
+      // 수정 저장
+      async function submitEdit() {
+        const newTitle = document.getElementById("editTitle").value.trim();
+        const newDate = document.getElementById("editDate").value;
+        if (!newTitle || !newDate)
+          return alert("일정명과 날짜를 모두 입력해주세요.");
 
-        if (!newDate) return;
-
-        await fetch(`/schedules/${id}`, {
+        await fetch(`/schedules/${currentEditId}`, {
           method: "PUT",
-
-          headers: {
-            "Content-Type": "application/json",
-          },
-
-          body: JSON.stringify({
-            title: newTitle,
-            date: newDate,
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: newTitle, date: newDate }),
         });
 
+        closeModal();
         loadSchedules();
       }
 
       // 삭제
       async function deleteSchedule(id) {
         if (!confirm("정말 삭제할까요?")) return;
-
-        await fetch(`/schedules/${id}`, {
-          method: "DELETE",
-        });
-
+        await fetch(`/schedules/${id}`, { method: "DELETE" });
         loadSchedules();
       }
 
