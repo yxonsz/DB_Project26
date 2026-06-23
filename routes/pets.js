@@ -62,3 +62,5 @@ router.post("/", upload.single("photo"), (req, res) => {
     res.send("반려동물 등록 완료");
   });
 });
+
+module.exports = router;
