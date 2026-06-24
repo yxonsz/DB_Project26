@@ -16,50 +16,94 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-function parseAgeToMonths(age) {
-  const text = String(age).trim().toLowerCase();
+// 반려동물 전체 조회
+router.get("/", (req, res) => {
+  const sql = "SELECT * FROM pet ORDER BY id DESC";
 
-  const yearMatch = text.match(/(\d+)\s*(살|세|년|year|years|y)/);
-  const monthMatch = text.match(/(\d+)\s*(개월|달|month|months|m)/);
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).send("오류");
+    }
 
-  let months = 0;
+    res.json(result);
+  });
+});
 
-  if (yearMatch) {
-    months += Number(yearMatch[1]) * 12;
-  }
-
-  if (monthMatch) {
-    months += Number(monthMatch[1]);
-  }
-
-  if (months === 0) {
-    return NaN;
-  }
-
-  return months;
-}
-
+// 반려동물 등록
 router.post("/", upload.single("photo"), (req, res) => {
   let { name, species, age, gender } = req.body;
+
   const photo = req.file ? "/uploads/" + req.file.filename : null;
 
-  // 정수 변환
   age = parseInt(age);
 
-  // 변환 실패하면 오류 처리
   if (isNaN(age)) {
     return res.status(400).send("나이를 올바르게 입력해주세요.");
   }
 
   const sql =
-    "INSERT INTO pet(name, species, age, gender, photo) VALUES (?, ?, ?, ?, ?)";
+    "INSERT INTO pet (name, species, age, gender, photo) VALUES (?, ?, ?, ?, ?)";
 
   db.query(sql, [name, species, age, gender, photo], (err) => {
     if (err) {
       console.log(err);
       return res.status(500).send("오류");
     }
+
     res.send("반려동물 등록 완료");
+  });
+});
+
+// 반려동물 수정
+router.put("/:id", upload.single("photo"), (req, res) => {
+  const { name, species, age, gender } = req.body;
+  const id = req.params.id;
+
+  let sql;
+  let params;
+
+  if (req.file) {
+    const photo = "/uploads/" + req.file.filename;
+
+    sql = `
+      UPDATE pet
+      SET name=?, species=?, age=?, gender=?, photo=?
+      WHERE id=?
+    `;
+
+    params = [name, species, age, gender, photo, id];
+  } else {
+    sql = `
+      UPDATE pet
+      SET name=?, species=?, age=?, gender=?
+      WHERE id=?
+    `;
+
+    params = [name, species, age, gender, id];
+  }
+
+  db.query(sql, params, (err) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).send("오류");
+    }
+
+    res.send("수정 완료");
+  });
+});
+
+// 반려동물 삭제
+router.delete("/:id", (req, res) => {
+  const sql = "DELETE FROM pet WHERE id=?";
+
+  db.query(sql, [req.params.id], (err) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).send("오류");
+    }
+
+    res.send("삭제 완료");
   });
 });
 
